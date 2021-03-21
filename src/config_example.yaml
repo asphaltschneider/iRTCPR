@@ -1,0 +1,83 @@
+# Insert the numerical iRacing ID of the driver, your main focus is on.
+# With other word: Who do you want to spectate on?
+# for instance: IRACING_ID: 257686
+IRACING_ID: 257686
+
+# Your Twitch username
+# for instance USERNAME: asphaltschneider
+USERNAME: YOUR_TWITCH_USERNAME
+
+# If it is a team sessions
+# Which Team ID do you want to focus on?
+# for instance: IRACING_TEAM_ID: 137005
+IRACING_TEAM_ID: 137005
+
+# Create a Twitch application here: https://dev.twitch.tv/console/apps/create
+# (Twitch will complain if you don't have 2-Factor Authentication enabled though)
+# Set the OAuth Redirect URL to http://localhost:17563
+CLIENT_ID: YOUR_CLIENT_ID
+CLIENT_SECRET: YOUR_CLIENT_SECRET
+
+# Debug mode. Set to true for testing purposes. you don't need this! really!
+DEBUG: false
+
+CAMERA_SWITCH_ENABLED: True
+# How many seconds should the camera stay at the redeemed camera?
+CAMERA_SWITCH_TIME: 10
+# How many channel points does a user need to invest?
+CAMERA_SWITCH_COST: 100
+
+# Title for Twitch reward, for choosing a random camera
+REWARD_TITLE_RANDOMCAM: Zufall
+
+CAMERA_DEFAULT: TV1
+
+# Enable (True) or Disable (False) the cooldown for a custom reward
+CAMERA_SWITCH_COOLDOWN_ENABLED: True
+# minimum time in seconds between the redeem of the same reward as before if enabled.
+CAMERA_SWITCH_COOLDOWN: 60
+
+# After the camera switched back from the redeemed one
+# for at least how long (seconds) should it stay there before another redeem can change it?
+CAMERA_SWITCH_MINIMUM_BETWEEN_REDEEMS: 4
+# which cameras should be available as rewards
+CAMERAS:
+  - Chase
+  - Gearbox
+  - Chopper
+  - Far Chase
+  - Gyro
+  - Nose
+
+# ----------------------------------------------------
+# FUTURE FEATURE BLOCK
+# ----------------------------------------------------
+# ignore the following for now!
+# the following friends block has no functionality yet
+
+FRIENDS_SWITCH_ENABLED: True
+FRIENDS_CAM: TV1
+FRIENDS_SWITCH_TIME: 10
+FRIENDS_SWITCH_COST: 1000
+FRIENDS_SWITCH_COOLDOWN_ENABLED: True
+FRIENDS_SWITCH_COOLDOWN: 1
+# if you enable the mutlitwitch option, we will check, if one of your friends is in the current session.
+# in case of your friend beeing a twitch streamer and currently streaming. it will construct a
+# multitwitch link with these online friends like:
+# https://www.multitwitch.tv/asphaltschneider/daddeljunkie/agnudel/mcpharma
+FRIENDS_MULTITWITCH_CMD_ENABLED: False
+FRIENDS_MULTITWITCH_CMD: multi21
+
+# you need to know the iracing uid of your friend
+# specify, how your twitch viewers should see your friend inside the channelpoint reward
+# the number is his iRacing ID
+# you can see it, if you search for your friend in iRacing,
+# go to his user profile,
+# copy the ID out of the URL
+FRIENDS:
+  DRIVERS:
+    123456: Friend One
+    123457: Friend Two
+  TEAMS:
+    234234: Team green
+    432432: Team white
