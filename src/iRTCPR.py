@@ -21,7 +21,7 @@ from threading import Thread
 import logging
 
 SCRIPTNAME = "iRTCPR"
-VERSION = "0.05"
+VERSION = "0.06"
 CONFIG_FILE = "config.yaml"
 secrets_fn = "twitch_secrets.json"
 redeem_cam_file = "redeem_cam.txt"
@@ -304,12 +304,12 @@ def check_iracing():
                   % (ir['WeekendInfo']['TrackDisplayName'],
                   ir['WeekendInfo']['TrackCity'],
                   ir['WeekendInfo']['TrackCountry']))
-            logger.info("iRacing - SessionID: %s, SubSessionID: %s"
-                        % (ir['WeekendInfo']['SessionID'],
-                           ir['WeekendInfo']['SubSessionID'], ))
-            state.SESSIONID = ir['WeekendInfo']['SessionID']
-            state.SUBSESSIONID = ir['WeekendInfo']['SubSessionID']
-            state.SESSIONNUM = ir["SessionNum"]
+            #logger.info("iRacing - SessionID: %s, SubSessionID: %s"
+            #            % (ir['WeekendInfo']['SessionID'],
+            #               ir['WeekendInfo']['SubSessionID'], ))
+            #state.SESSIONID = ir['WeekendInfo']['SessionID']
+            #state.SUBSESSIONID = ir['WeekendInfo']['SubSessionID']
+            #state.SESSIONNUM = ir["SessionNum"]
             if ir['WeekendInfo']['WeekendOptions']['StandingStart'] == 1:
                 standingstart = "standing"
             else:
@@ -749,6 +749,50 @@ def DriverOrTeamsWorker(stop):
         #     logger.critical("DriverOrTeamsWorker - an exception occured %s" % (e, ))
     logger.info("DriverOrTeamsWorker - Thread ends")
 
+def iRacingSessionWatcher(stop):
+    logger.info("iRacingSessionWatcher - Thread starts")
+
+    while not stop():
+        if state.ir_connected:
+            # logger.info("iRacingSessionWatcher - state   - sessionid: %s subsessionid: %s sessionnum: %s"
+            #            % (state.SESSIONID, state.SUBSESSIONID, state.SESSIONNUM, ))
+            # logger.info("iRacingSessionWatcher - session - sessionid: %s subsessionid: %s sessionnum: %s"
+            #            % (ir['WeekendInfo']["SessionID"], ir['WeekendInfo']["SubSessionID"], ir["SessionNum"], ))
+            if ir['WeekendInfo']:
+                if ir["SessionNum"] != state.SESSIONNUM \
+                        or state.SESSIONID != ir['WeekendInfo']["SessionID"] \
+                        or state.SUBSESSIONID != ir['WeekendInfo']['SubSessionID']:
+                    initiate_reloads = 0
+                    if ir["SessionNum"] != state.SESSIONNUM:
+                        logger.info("iRacingSessionWatcher - SessionNum changes from %s (%s) to %s (%s)"
+                                    % (state.SESSIONNUM,
+                                       state.SESSIONNAME,
+                                       ir["SessionNum"],
+                                       ir["SessionInfo"]["Sessions"][ir["SessionNum"]]["SessionName"]))
+                        SESSIONNUM = ir["SessionNum"]
+                        state.SESSIONNAME = ir["SessionInfo"]["Sessions"][int(SESSIONNUM)]["SessionName"]
+                        state.SESSIONNUM = ir["SessionNum"]
+                    if state.SESSIONID != ir['WeekendInfo']["SessionID"]:
+                        logger.info("iRacingSessionWatcher - SessionID changes from %s to %s"
+                                    % (state.SESSIONID,
+                                       ir['WeekendInfo']["SessionID"]))
+                        state.SESSIONID = ir['WeekendInfo']["SessionID"]
+                        initiate_reloads = 1
+
+                    if state.SUBSESSIONID != ir['WeekendInfo']["SubSessionID"]:
+                        logger.info("iRacingSessionWatcher - SubSessionID changes from %s to %s"
+                                    % (state.SUBSESSIONID,
+                                       ir['WeekendInfo']["SubSessionID"]))
+                        state.SUBSESSIONID = ir['WeekendInfo']["SubSessionID"]
+                        initiate_reloads = 1
+
+                    if initiate_reloads == 1:
+                        state.RELOAD_CAMERAS = 1
+                        state.RELOAD_DRIVERS = 1
+
+
+        time.sleep(2)
+    logger.info("iRacingSessionWatcher - Thread ends")
 
 def iRacingWorker(r, stop):
         logger.info("iRacingWorker - Thread starts")
@@ -796,16 +840,16 @@ def iRacingWorker(r, stop):
                         if ir["SessionNum"] != state.SESSIONNUM\
                                 or state.SESSIONID != ir["SessionID"]\
                                 or state.SUBSESSIONID != ir['WeekendInfo']['SubSessionID']:
-                            logger.info("Current Session is %s" % (state.SESSIONNAME,))
-                            state.SESSIONID = ir['WeekendInfo']["SessionID"]
-                            logger.info("sessionid %s" % (state.SESSIONID,))
-                            state.SUBSESSIONID = ir['WeekendInfo']["SubSessionID"]
-                            logger.info("SUBSESSIONID %s" % (state.SUBSESSIONID,))
+                            #logger.info("Current Session is %s" % (state.SESSIONNAME,))
+                            #state.SESSIONID = ir['WeekendInfo']["SessionID"]
+                            #logger.info("sessionid %s" % (state.SESSIONID,))
+                            #state.SUBSESSIONID = ir['WeekendInfo']["SubSessionID"]
+                            #logger.info("SUBSESSIONID %s" % (state.SUBSESSIONID,))
                             SESSIONNUM = ir["SessionNum"]
-                            state.SESSIONNAME = ir["SessionInfo"]["Sessions"][int(SESSIONNUM)]["SessionName"]
-                            state.SESSIONNUM = ir["SessionNum"]
-                            logger.info("SessionNum %s" % (SESSIONNUM,))
-                            logger.info("Current Session is %s" % (state.SESSIONNAME, ))
+                            #state.SESSIONNAME = ir["SessionInfo"]["Sessions"][int(SESSIONNUM)]["SessionName"]
+                            #state.SESSIONNUM = ir["SessionNum"]
+                            #logger.info("SessionNum %s" % (SESSIONNUM,))
+                            #logger.info("Current Session is %s" % (state.SESSIONNAME, ))
                             if ir['WeekendInfo']:
                                 if ir['WeekendInfo']["TeamRacing"] == 1:
                                     logger.info("teamracing is set")
@@ -963,20 +1007,27 @@ removerewards()
 uuid = pubsub.listen_channel_points(user_id, callback)
 
 stop_threads = False
+
 redeemMonitorThread = Thread(target=redeemListInfo, args=(redeems, lambda: stop_threads, ))
 redeemWorkThread = Thread(target=redeemFulfiller, args=(redeems, lambda: stop_threads, ))
 iRacingThread = Thread(target=iRacingWorker, args=(redeems, lambda: stop_threads, ))
 iRacingDriverThread = Thread(target=DriverOrTeamsWorker, args=(lambda: stop_threads, ))
+iRacingSessionWatcherThread = Thread(target=iRacingSessionWatcher, args=(lambda: stop_threads, ))
+
 redeemMonitorThread.start()
 redeemWorkThread.start()
 iRacingThread.start()
 iRacingDriverThread.start()
+iRacingSessionWatcherThread.start()
 
 input("any key to end\n")
 stop_threads = True
+
 redeemMonitorThread.join()
 redeemWorkThread.join()
 iRacingThread.join()
 iRacingDriverThread.join()
+iRacingSessionWatcherThread.join()
+
 pubsub.unlisten(uuid)
 pubsub.stop()
