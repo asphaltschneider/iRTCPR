@@ -21,7 +21,7 @@ from threading import Thread
 import logging
 
 SCRIPTNAME = "iRTCPR"
-VERSION = "0.06"
+VERSION = "0.07"
 CONFIG_FILE = "config.yaml"
 secrets_fn = "twitch_secrets.json"
 redeem_cam_file = "redeem_cam.txt"
@@ -358,7 +358,7 @@ def findteam(uid):
         return True
 
     if not found_driver:
-        logger.info("was not able to find the user %s in the current session" % (uid, ))
+        logger.info("was not able to find the team %s in the current session" % (uid, ))
 
 
 def finddriver(uid):
@@ -427,11 +427,12 @@ def autocamswitcher():
             spec_on = state.TEAMTOSPECID
         pctspecon = ir["CarIdxLapDistPct"][spec_on]
         #print("tracklength", ir["WeekendInfo"]["TrackLength"])
-        tracklength = ir["WeekendInfo"]["TrackLength"]
         try:
+            tracklength = ir["WeekendInfo"]["TrackLength"]
             tracklength_km = re.search('([\d\.]+?)\ km.*$', tracklength).group(1)
         except AttributeError:
             tracklength_km = ''
+            pass
         tracklength_m = float(tracklength_km) * 1000
         #print("tracklength", tracklength_m)
         cur_pctspecon = pctspecon
@@ -649,13 +650,13 @@ def DriverOrTeamsWorker(stop):
                             for i in range(len(ir["DriverInfo"]["Drivers"])):
                                 #logger.info("looping through %s" % (i,))
                                 carIdx = ir["DriverInfo"]["Drivers"][i]["CarIdx"]
-                                logger.info("DriverOrTeamsWorker - carIdx %s" % (carIdx,))
+                                #logger.info("DriverOrTeamsWorker - carIdx %s" % (carIdx,))
                                 #logger.info("isspec %s" % (ir["DriverInfo"]["Drivers"][i]["IsSpectator"],))
-                                logger.info("TeamID %s" % (ir["DriverInfo"]["Drivers"][i]["TeamID"],))
-                                if carIdx in this_all_drivers_dict:
-                                    logger.info("carIdx %s in dict: %s %s" % (carIdx,
-                                                                              this_all_drivers_dict[carIdx]["CarNumber"],
-                                                                              ir["DriverInfo"]["Drivers"][carIdx]["TeamName"],))
+                                #logger.info("TeamID %s" % (ir["DriverInfo"]["Drivers"][i]["TeamID"],))
+                                # if carIdx in this_all_drivers_dict:
+                                #     logger.info("carIdx %s in dict: %s %s" % (carIdx,
+                                #                                               this_all_drivers_dict[carIdx]["CarNumber"],
+                                #                                               ir["DriverInfo"]["Drivers"][carIdx]["TeamName"],))
                                 if not ir["DriverInfo"]["Drivers"][i]["TeamID"] == 0 \
                                         and not carIdx in this_all_drivers_dict:
                                     logger.info("DriverOrTeamsWorker - carIdx %s" % (carIdx,))
