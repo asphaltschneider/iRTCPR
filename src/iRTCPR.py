@@ -21,7 +21,7 @@ from threading import Thread
 import logging
 
 SCRIPTNAME = "iRTCPR"
-VERSION = "0.07"
+VERSION = "0.08"
 CONFIG_FILE = "config.yaml"
 secrets_fn = "twitch_secrets.json"
 redeem_cam_file = "redeem_cam.txt"
